@@ -1,69 +1,233 @@
+
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
-export default function Home() {
+const petals = Array.from({ length: 42 }, (_, i) => ({
+  id: i,
+  left: `${(i * 37 + 11) % 100}%`,
+  delay: `${(i % 14) * 0.18}s`,
+  duration: `${6 + (i % 7) * 0.55}s`,
+  drift: `${((i * 19) % 150) - 75}px`,
+  size: `${10 + (i % 5) * 3}px`,
+  rotation: `${(i * 43) % 360}deg`,
+}));
+
+export default function SummitOpening() {
+  const [curtainsActive, setCurtainsActive] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!curtainsActive || isOpen) return;
+
+    const timer = window.setTimeout(() => {
+      setIsOpen(true);
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [curtainsActive, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat) return;
+
+      const target = event.target as HTMLElement | null;
+
+      if (
+        target?.isContentEditable ||
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT"
+      ) {
+        return;
+      }
+
+      if (
+        event.code === "Space" ||
+        event.code === "Enter"
+      ) {
+        event.preventDefault();
+        setCurtainsActive(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <main
+      className={[
+        "summit-stage",
+        curtainsActive ? "curtains-active" : "",
+        isOpen ? "is-open" : "",
+      ].join(" ")}
+    >
+      {/* STAGE 2: SUMMIT POSTER */}
+      <section
+        className="summit-reveal"
+        aria-label="AI and Healthcare Summit 2026 poster"
+        aria-hidden={!isOpen}
+      >
+        <div className="poster-frame">
+          <Image
+            src="/summitposter.jpeg"
+            alt="AI & Healthcare Summit 2026"
+            fill
+            priority
+            sizes="(max-width: 768px) 94vw, 94vh"
+            className="summit-poster"
+          />
+        </div>
+      </section>
+
+      {/* STAGE 1: UNIVERSITY WELCOME */}
+      <section
+        className="welcome-screen"
+        aria-label="SMIU welcome ceremony"
+        aria-hidden={isOpen}
+      >
+        <div className="welcome-content">
+          <div className="university-identity">
+            <div className="university-logo-frame">
+              <Image
+                src="/uni.png"
+                alt="1885 SMI University"
+                width={220}
+                height={220}
+                priority
+                className="university-logo"
+              />
+            </div>
+
+            <span className="identity-rule" />
+
+            <p className="identity-caption">
+              SMI UNIVERSITY
+            </p>
+          </div>
+
+          <p className="welcome-eyebrow">
+            WITH PRIDE, RESPECT &amp; WARMTH
+          </p>
+
+          <h1 className="welcome-title">
+            SMI University
+            <br />
+            <span>Welcomes You</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <div className="gold-divider" aria-hidden="true">
+            <span />
+            <span className="divider-diamond">✧</span>
+            <span />
+          </div>
+
+          <p className="honour-text">
+            We extend our heartfelt welcome to our Honourable
+            Vice Chancellor, distinguished guests and dignitaries,
+            esteemed faculty members, researchers, healthcare
+            professionals, delegates and dear students.
+          </p>
+
+          <p className="welcome-message">
+            Your presence makes this gathering meaningful.
+            Together, let us explore ideas, share knowledge and
+            advance a healthier future through innovation.
+          </p>
+
+          <div className="welcome-event">
+            <span className="event-kicker">
+              CELEBRATING KNOWLEDGE &amp; INNOVATION
+            </span>
+
+            <h2>
+              AI &amp; Healthcare Summit
+              <span className="event-year">2026</span>
+            </h2>
+
+            <p className="event-theme">
+              Advancing Solutions for Stress, Mental Health &amp;
+              Diabetes
+            </p>
+
+            <p className="event-date">
+              <span className="date-line" />
+              04 NOVEMBER 2026
+              <span className="date-line" />
+            </p>
+          </div>
+
+          <button
+            className="enter-button"
+            type="button"
+            onClick={() => setCurtainsActive(true)}
+            disabled={curtainsActive}
+          >
+            <span>
+              {curtainsActive
+                ? "THE CEREMONY BEGINS"
+                : "REVEAL THE SUMMIT"}
+            </span>
+            <span className="enter-arrow" aria-hidden="true">
+              →
+            </span>
+          </button>
+
+          <p className="keyboard-hint">
+            PRESS SPACE OR ENTER TO BEGIN
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="welcome-footer">
+          <span>1885 SMI UNIVERSITY</span>
+          <span className="footer-separator">✦</span>
+          <span>4 NOVEMBER 2026</span>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* FRESH FLOWER SHOWER FOR EACH STAGE */}
+      {(!isOpen || curtainsActive) && (
+        <div
+          key={isOpen ? "poster-petals" : "welcome-petals"}
+          className="petal-shower"
+          aria-hidden="true"
+        >
+          {petals.map((petal) => (
+            <span
+              key={petal.id}
+              className="flower-petal"
+              style={{
+                left: petal.left,
+                animationDelay: petal.delay,
+                animationDuration: petal.duration,
+                "--drift": petal.drift,
+                "--petal-size": petal.size,
+                "--rotation": petal.rotation,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* CURTAINS: HIDDEN UNTIL THE POSTER REVEAL */}
+      <div className="curtain curtain-left" aria-hidden="true">
+        <div className="curtain-folds" />
+        <div className="curtain-edge" />
+      </div>
+
+      <div className="curtain curtain-right" aria-hidden="true">
+        <div className="curtain-folds" />
+        <div className="curtain-edge" />
+      </div>
+
+      <div className="curtain-seam" aria-hidden="true" />
+    </main>
   );
 }

@@ -1,26 +1,888 @@
-@import "tailwindcss";
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap");
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --teal: #073b40;
+  --teal-dark: #03282d;
+  --gold: #c9ad7a;
+  --ivory: #f8f5ee;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "DM Sans", Arial, sans-serif;
+  background: var(--ivory);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+}
+
+.summit-stage {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  min-height: 540px;
+  overflow: hidden;
+  background: var(--ivory);
+}
+
+/* POSTER: STAGE TWO */
+
+.summit-reveal {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2vh 3vw;
+  background:
+    radial-gradient(ellipse at center, #fffefa, #f2ede3);
+}
+
+.poster-frame {
+  position: relative;
+  width: min(94vw, 94vh);
+  height: min(94vw, 94vh);
+  max-width: 1100px;
+  max-height: 1100px;
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity 1s ease 0.65s,
+    transform 1.2s ease 0.65s;
+}
+
+.summit-poster {
+  object-fit: contain;
+  object-position: center;
+}
+
+.is-open .poster-frame {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* WELCOME: STAGE ONE */
+
+.welcome-screen {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 25px 22px 70px;
+  text-align: center;
+  color: #faf6ec;
+  background:
+    radial-gradient(
+      ellipse at 50% 20%,
+      rgb(38 108 101 / 32%),
+      transparent 48%
+    ),
+    linear-gradient(145deg, #073b40, #03292e 72%, #021f24);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 450ms ease,
+    visibility 0s;
+}
+
+.is-open .welcome-screen {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 350ms ease,
+    visibility 0s linear 350ms;
+}
+
+.welcome-content {
+  width: min(100%, 760px);
+  flex-shrink: 0;
+  margin: auto 0;
+  animation: welcome-arrive 1s ease both;
+}
+
+.university-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.university-logo-frame {
+  width: 104px;
+  height: 104px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid rgb(201 173 122 / 80%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 12%);
+}
+
+.university-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.identity-rule {
+  width: 45px;
+  height: 1px;
+  margin-top: 3px;
+  background: var(--gold);
+}
+
+.identity-caption {
+  margin: 0;
+  color: #ddc79c;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.23em;
+}
+
+.welcome-eyebrow {
+  margin: 19px 0 11px;
+  color: #d2b780;
+  font-size: 9px;
+  letter-spacing: 0.19em;
+}
+
+.welcome-title {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(38px, 4.7vw, 59px);
+  font-weight: 400;
+  line-height: 1.13;
+  letter-spacing: -0.025em;
+}
+
+.welcome-title span {
+  color: #d6bc8b;
+  font-style: italic;
+}
+
+.gold-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 13px auto;
+  color: var(--gold);
+}
+
+.gold-divider > span:not(.divider-diamond) {
+  width: 42px;
+  height: 1px;
+  background: rgb(201 173 122 / 70%);
+}
+
+.divider-diamond {
+  font-size: 18px;
+}
+
+.honour-text {
+  max-width: 620px;
+  margin: 0 auto;
+  color: rgb(250 246 236 / 87%);
+  font-size: 12px;
+  line-height: 1.85;
+}
+
+.welcome-message {
+  max-width: 560px;
+  margin: 12px auto 0;
+  color: rgb(250 246 236 / 65%);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.75;
+}
+
+.welcome-event {
+  margin-top: 18px;
+}
+
+.event-kicker {
+  color: #d2b780;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+}
+
+.welcome-event h2 {
+  margin: 7px 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(23px, 3vw, 34px);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.event-year {
+  margin-left: 8px;
+  color: #d2b780;
+  white-space: nowrap;
+}
+
+.event-theme {
+  max-width: 480px;
+  margin: 0 auto;
+  color: rgb(250 246 236 / 70%);
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.event-date {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  margin: 12px 0 0;
+  color: #ddc79c;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.17em;
+}
+
+.date-line {
+  width: 27px;
+  height: 1px;
+  background: rgb(201 173 122 / 65%);
+}
+
+.enter-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 46px;
+  margin-top: 21px;
+  padding: 0 23px;
+  border: 1px solid rgb(201 173 122 / 85%);
+  border-radius: 0;
+  background: transparent;
+  color: #faf6ec;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  transition:
+    color 250ms ease,
+    background 250ms ease,
+    opacity 250ms ease;
+}
+
+.enter-button:hover:not(:disabled) {
+  background: var(--gold);
+  color: #03292e;
+}
+
+.enter-button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 5px;
+}
+
+.enter-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.enter-arrow {
+  color: var(--gold);
+  font-size: 18px;
+}
+
+.enter-button:hover .enter-arrow {
+  color: #03292e;
+}
+
+.keyboard-hint {
+  margin: 10px 0 0;
+  color: rgb(250 246 236 / 48%);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+}
+
+.welcome-footer {
+  position: absolute;
+  right: 16px;
+  bottom: 21px;
+  left: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  color: rgb(250 246 236 / 58%);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+.footer-separator {
+  color: var(--gold);
+}
+
+/* CURTAINS: INVISIBLE ON THE FIRST SCREEN */
+
+.curtain {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  bottom: 0;
+  width: 51%;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform;
+  transition:
+    transform 2200ms cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 100ms ease,
+    visibility 0s linear 100ms;
+}
+
+.curtains-active .curtain {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    transform 2200ms cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 100ms ease,
+    visibility 0s;
+}
+
+.curtain-left {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    #03272c,
+    #0b494b 15%,
+    #07383d 30%,
+    #155453 43%,
+    #06373b 60%,
+    #10484b 77%,
+    #03272c
+  );
+  box-shadow: 10px 0 30px rgb(0 0 0 / 15%);
+}
+
+.curtain-right {
+  right: 0;
+  background: linear-gradient(
+    270deg,
+    #03272c,
+    #0b494b 15%,
+    #07383d 30%,
+    #155453 43%,
+    #06373b 60%,
+    #10484b 77%,
+    #03272c
+  );
+  box-shadow: -10px 0 30px rgb(0 0 0 / 15%);
+}
+
+.curtain-folds {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 17%) 0%,
+      transparent 7%,
+      rgb(255 255 255 / 5%) 13%,
+      transparent 20%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(0 0 0 / 18%),
+      transparent 20%,
+      transparent 80%,
+      rgb(0 0 0 / 23%)
+    );
+}
+
+.curtain-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgb(201 173 122 / 65%) 18%,
+    rgb(201 173 122 / 90%) 50%,
+    rgb(201 173 122 / 65%) 82%,
+    transparent
+  );
+}
+
+.curtain-left .curtain-edge {
+  right: 0;
+}
+
+.curtain-right .curtain-edge {
+  left: 0;
+}
+
+.is-open .curtain-left {
+  transform: translateX(-101%);
+}
+
+.is-open .curtain-right {
+  transform: translateX(101%);
+}
+
+.curtain-seam {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: rgb(201 173 122 / 30%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.curtains-active .curtain-seam {
+  opacity: 1;
+}
+
+.is-open .curtain-seam {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+/* PETAL SHOWER */
+
+.petal-shower {
+  position: absolute;
+  z-index: 7;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.flower-petal {
+  position: absolute;
+  top: -35px;
+  width: var(--petal-size);
+  height: calc(var(--petal-size) * 1.45);
+  border-radius: 80% 15% 75% 25%;
+  background: linear-gradient(
+    140deg,
+    #f5d6d6,
+    #d99caa 60%,
+    #bd758c
+  );
+  opacity: 0;
+  filter: drop-shadow(0 2px 3px rgb(65 25 35 / 12%));
+  animation: petal-fall linear both;
+}
+
+.flower-petal:nth-child(3n) {
+  background: linear-gradient(
+    140deg,
+    #fff0d5,
+    #e6c99c 70%,
+    #c6a474
+  );
+}
+
+.flower-petal:nth-child(3n + 1) {
+  background: linear-gradient(
+    140deg,
+    #fff8f1,
+    #e8d4da 70%,
+    #d5b3bd
+  );
+}
+
+@keyframes petal-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -5vh, 0)
+      rotate(var(--rotation));
+  }
+
+  8% {
+    opacity: 0.85;
+  }
+
+  85% {
+    opacity: 0.75;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--drift), 110vh, 0)
+      rotate(calc(var(--rotation) + 520deg));
+  }
+}
+
+@keyframes welcome-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+  .summit-stage {
+    min-height: 540px;
+  }
+
+  .welcome-screen {
+    padding: 16px 19px 62px;
+  }
+
+  .university-logo-frame {
+    width: 80px;
+    height: 80px;
+  }
+
+  .welcome-eyebrow {
+    margin: 15px 0 9px;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+  }
+
+  .welcome-title {
+    font-size: clamp(32px, 7.5vw, 45px);
+  }
+
+  .honour-text {
+    font-size: 11px;
+    line-height: 1.8;
+  }
+
+  .welcome-message {
+    margin-top: 9px;
+    font-size: 12px;
+  }
+
+  .welcome-event {
+    margin-top: 14px;
+  }
+
+  .welcome-event h2 {
+    font-size: clamp(21px, 5.4vw, 28px);
+  }
+
+  .event-kicker {
+    font-size: 7px;
+    letter-spacing: 0.13em;
+  }
+
+  .event-theme {
+    font-size: 10px;
+  }
+
+  .event-date {
+    gap: 8px;
+    font-size: 8px;
+  }
+
+  .date-line {
+    width: 19px;
+  }
+
+  .enter-button {
+    margin-top: 16px;
+    min-height: 43px;
+  }
+
+  .welcome-footer {
+    bottom: 17px;
+    gap: 8px;
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+
+  .curtain {
+    width: 52%;
+  }
+}
+
+/* Short screens: allow scrolling rather than clipping welcome text */
+
+@media (max-height: 760px) {
+  .welcome-screen {
+    justify-content: flex-start;
+    padding-top: 12px;
+    padding-bottom: 64px;
+  }
+
+  .welcome-content {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
+  .university-logo-frame {
+    width: 70px;
+    height: 70px;
+  }
+
+  .welcome-eyebrow {
+    margin-top: 10px;
+    margin-bottom: 7px;
+  }
+
+  .welcome-title {
+    font-size: clamp(30px, 4vw, 42px);
+  }
+
+  .gold-divider {
+    margin: 8px auto;
+  }
+
+  .welcome-message {
+    margin-top: 7px;
+  }
+
+  .welcome-event {
+    margin-top: 10px;
+  }
+
+  .enter-button {
+    margin-top: 12px;
+  }
+
+  .keyboard-hint {
+    margin-top: 6px;
+  }
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+  .flower-petal {
+    display: none;
+  }
+
+  .welcome-content {
+    animation: none;
+  }
+
+  .curtain,
+  .poster-frame,
+  .welcome-screen {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* STAGE 1 — LARGER, MORE PROMINENT TYPOGRAPHY */
+
+.welcome-eyebrow {
+  margin: 22px 0 15px;
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  line-height: 1.8;
+}
+
+.welcome-title {
+  font-size: clamp(48px, 5.5vw, 76px);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.honour-text {
+  max-width: 850px;
+  font-size: clamp(16px, 1.35vw, 20px);
+  line-height: 1.9;
+}
+
+.welcome-message {
+  max-width: 760px;
+  margin: 16px auto 0;
+  font-size: clamp(16px, 1.25vw, 19px);
+  line-height: 1.85;
+}
+
+.event-kicker {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+}
+
+.welcome-event h2 {
+  font-size: clamp(30px, 3.5vw, 44px);
+  line-height: 1.35;
+}
+
+.event-theme {
+  max-width: 650px;
+  font-size: clamp(14px, 1.15vw, 17px);
+  line-height: 1.8;
+}
+
+.event-date {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  margin-top: 16px;
+}
+
+.enter-button {
+  min-height: 58px;
+  padding: 0 32px;
+  margin-top: 26px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+}
+
+.enter-arrow {
+  font-size: 22px;
+}
+
+.keyboard-hint {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  margin-top: 12px;
+}
+
+.identity-caption {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+}
+
+.welcome-footer {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+/* MOBILE — KEEP THE WELCOME LEGIBLE */
+
+@media (max-width: 768px) {
+  .welcome-screen {
+    padding: 20px 22px 70px;
+  }
+
+  .university-logo-frame {
+    width: 88px;
+    height: 88px;
+  }
+
+  .identity-caption {
+    font-size: 9px;
+  }
+
+  .welcome-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    margin: 17px 0 12px;
+  }
+
+  .welcome-title {
+    font-size: clamp(38px, 8.5vw, 54px);
+  }
+
+  .honour-text {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  .welcome-message {
+    font-size: 14px;
+    line-height: 1.8;
+    margin-top: 12px;
+  }
+
+  .event-kicker {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+
+  .welcome-event h2 {
+    font-size: clamp(25px, 6.2vw, 34px);
+  }
+
+  .event-theme {
+    font-size: 13px;
+  }
+
+  .event-date {
+    font-size: 10px;
+    gap: 8px;
+  }
+
+  .enter-button {
+    min-height: 52px;
+    padding: 0 22px;
+    font-size: 10px;
+  }
+
+  .keyboard-hint {
+    font-size: 9px;
+  }
+
+  .welcome-footer {
+    font-size: 8px;
+    gap: 8px;
+  }
+}
+
+/* SHORT DISPLAYS — AVOID OVERSIZED CONTENT */
+
+@media (max-height: 760px) {
+  .welcome-screen {
+    padding-top: 12px;
+    padding-bottom: 64px;
+  }
+
+  .university-logo-frame {
+    width: 70px;
+    height: 70px;
+  }
+
+  .welcome-eyebrow {
+    margin-top: 10px;
+    margin-bottom: 8px;
+  }
+
+  .welcome-title {
+    font-size: clamp(38px, 4.3vw, 56px);
+  }
+
+  .honour-text {
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .welcome-message {
+    font-size: 14px;
+    line-height: 1.65;
+    margin-top: 9px;
+  }
+
+  .welcome-event {
+    margin-top: 12px;
+  }
+
+  .welcome-event h2 {
+    font-size: clamp(27px, 3vw, 36px);
+  }
+
+  .enter-button {
+    margin-top: 15px;
+  }
 }
