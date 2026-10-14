@@ -1,233 +1,421 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const petals = Array.from({ length: 42 }, (_, i) => ({
-  id: i,
-  left: `${(i * 37 + 11) % 100}%`,
-  delay: `${(i % 14) * 0.18}s`,
-  duration: `${6 + (i % 7) * 0.55}s`,
-  drift: `${((i * 19) % 150) - 75}px`,
-  size: `${10 + (i % 5) * 3}px`,
-  rotation: `${(i * 43) % 360}deg`,
-}));
+interface FloatingElement {
+  id: number;
+  left: string;
+  delay: string;
+  duration: string;
+  size: number;
+  drift: string;
+  rotation: string;
+  type: "petal" | "stardust";
+}
 
-export default function SummitOpening() {
-  const [curtainsActive, setCurtainsActive] = useState(false);
+export default function SummitWelcomePage() {
+  const [curtainsVisible, setCurtainsVisible] = useState(false);
+  const [curtainsOpening, setCurtainsOpening] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
-  useEffect(() => {
-    if (!curtainsActive || isOpen) return;
+  const applauseRef = useRef<HTMLAudioElement | null>(null);
+  const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startedRef = useRef(false);
 
-    const timer = window.setTimeout(() => {
+  // Deterministic petals & gold stardust particles
+  const floatingItems: FloatingElement[] = useMemo(() => {
+    return Array.from({ length: 54 }, (_, i) => {
+      const isStardust = i % 3 === 0;
+      return {
+        id: i,
+        left: `${((i * 37 + 13) % 96) + 2}%`,
+        delay: `${((i * 0.24) % 4.5).toFixed(2)}s`,
+        duration: `${(isStardust ? 6.5 : 8.2) + (i % 6) * 0.65}s`,
+        size: isStardust ? 5 + (i % 4) * 2 : 11 + (i % 5) * 3,
+        drift: `${((i * 19) % 140) - 70}px`,
+        rotation: `${(i * 53) % 360}deg`,
+        type: isStardust ? "stardust" : "petal",
+      };
+    });
+  }, []);
+
+  // Gentle Web Audio chime fallback if /applause.mp3 is absent or blocked
+  const playCeremonialChime = useCallback(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const frequencies = [528, 660, 792, 1056];
+      frequencies.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.15);
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + idx * 0.15);
+        gain.gain.exponentialRampToValueAtTime(
+          0.11 / (idx + 1),
+          ctx.currentTime + idx * 0.15 + 0.1
+        );
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          ctx.currentTime + idx * 0.15 + 4.5
+        );
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.15);
+        osc.stop(ctx.currentTime + idx * 0.15 + 4.8);
+      });
+    } catch {
+      // Ignore audio restriction errors
+    }
+  }, []);
+
+  const handleReveal = useCallback(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+
+    const audio = applauseRef.current;
+    if (soundEnabled) {
+      if (audio) {
+        if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
+        audio.currentTime = 0;
+        audio.volume = 0.65;
+        audio.play().catch(() => {
+          playCeremonialChime();
+        });
+
+        fadeTimerRef.current = setInterval(() => {
+          if (!audio || audio.paused) {
+            if (fadeTimerRef.current) {
+              clearInterval(fadeTimerRef.current);
+              fadeTimerRef.current = null;
+            }
+            return;
+          }
+
+          if (audio.currentTime >= 6.5 && audio.volume > 0.025) {
+            audio.volume = Math.max(0, audio.volume - 0.02);
+          }
+
+          if (audio.volume <= 0.025) {
+            audio.pause();
+            audio.currentTime = 0;
+            if (fadeTimerRef.current) {
+              clearInterval(fadeTimerRef.current);
+              fadeTimerRef.current = null;
+            }
+          }
+        }, 180);
+      } else {
+        playCeremonialChime();
+      }
+    }
+
+    // Step 1: Bring the closed velvet curtains & gold seal onto the stage
+    setCurtainsVisible(true);
+
+    // Step 2: Swap background to poster stage & begin slow 9.5s curtain parting
+    openTimerRef.current = setTimeout(() => {
       setIsOpen(true);
-    }, 120);
+      setCurtainsOpening(true);
+    }, 650);
+  }, [soundEnabled, playCeremonialChime]);
 
-    return () => window.clearTimeout(timer);
-  }, [curtainsActive, isOpen]);
+  const handleReset = useCallback(() => {
+    if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
+    if (openTimerRef.current) clearTimeout(openTimerRef.current);
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    if (applauseRef.current) {
+      applauseRef.current.pause();
+      applauseRef.current.currentTime = 0;
+    }
+    setCurtainsOpening(false);
+    setCurtainsVisible(false);
+    setIsOpen(false);
+    startedRef.current = false;
+  }, []);
 
   useEffect(() => {
-    if (isOpen) return;
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.repeat) return;
-
       const target = event.target as HTMLElement | null;
-
       if (
-        target?.isContentEditable ||
         target?.tagName === "INPUT" ||
         target?.tagName === "TEXTAREA" ||
-        target?.tagName === "SELECT"
+        target?.isContentEditable
       ) {
         return;
       }
 
-      if (
-        event.code === "Space" ||
-        event.code === "Enter"
-      ) {
+      if (event.code === "Space" || event.key === "Enter") {
         event.preventDefault();
-        setCurtainsActive(true);
+        if (!startedRef.current) {
+          handleReveal();
+        }
+      } else if (event.key === "Escape" && startedRef.current) {
+        handleReset();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      if (openTimerRef.current) clearTimeout(openTimerRef.current);
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+      if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
     };
-  }, [isOpen]);
+  }, [handleReveal, handleReset]);
 
   return (
     <main
       className={[
         "summit-stage",
-        curtainsActive ? "curtains-active" : "",
+        curtainsVisible ? "curtains-visible" : "",
+        curtainsOpening ? "curtains-opening" : "",
         isOpen ? "is-open" : "",
-      ].join(" ")}
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      {/* STAGE 2: SUMMIT POSTER */}
-      <section
-        className="summit-reveal"
-        aria-label="AI and Healthcare Summit 2026 poster"
-        aria-hidden={!isOpen}
-      >
-        <div className="poster-frame">
-          <Image
-            src="/summitposter.jpeg"
-            alt="AI & Healthcare Summit 2026"
-            fill
-            priority
-            sizes="(max-width: 768px) 94vw, 94vh"
-            className="summit-poster"
-          />
-        </div>
-      </section>
+      <audio
+        ref={applauseRef}
+        src="/applause.mp3"
+        preload="auto"
+        aria-hidden="true"
+      />
 
-      {/* STAGE 1: UNIVERSITY WELCOME */}
-      <section
-        className="welcome-screen"
-        aria-label="SMIU welcome ceremony"
-        aria-hidden={isOpen}
-      >
-        <div className="welcome-content">
-          <div className="university-identity">
-            <div className="university-logo-frame">
+      {/* Ambient Royal Backdrop */}
+      <div className="ambient-backdrop" aria-hidden="true">
+        <div className="ambient-orb orb-top" />
+        <div className="ambient-orb orb-bottom" />
+        <div className="stage-border-frame" />
+      </div>
+
+      {/* ---------------- WELCOME SCREEN (LOCKED TO 100SVH) ---------------- */}
+      <section className="welcome-screen" aria-label="Summit Welcome Note">
+        <div className="welcome-card">
+          {/* Decorative Corner Accents */}
+          <span className="corner-ornament corner-tl" aria-hidden="true" />
+          <span className="corner-ornament corner-tr" aria-hidden="true" />
+          <span className="corner-ornament corner-bl" aria-hidden="true" />
+          <span className="corner-ornament corner-br" aria-hidden="true" />
+
+          {/* Pure-White Medallion so uni.png blends seamlessly */}
+          <div className="crest-header">
+            <div className="crest-medallion">
               <Image
                 src="/uni.png"
-                alt="1885 SMI University"
-                width={220}
-                height={220}
+                alt="SMI University Logo - Established 1885"
+                width={120}
+                height={120}
                 priority
-                className="university-logo"
+                className="logo-image"
               />
             </div>
-
-            <span className="identity-rule" />
-
-            <p className="identity-caption">
-              SMI UNIVERSITY
-            </p>
           </div>
 
-          <p className="welcome-eyebrow">
-            WITH PRIDE, RESPECT &amp; WARMTH
+          <p className="eyebrow">
+            <span>ESTD. 1885</span>
+            <span className="eyebrow-dot">✦</span>
+            <span>SINDH MADRESSATUL ISLAM UNIVERSITY</span>
           </p>
 
-          <h1 className="welcome-title">
-            SMI University
-            <br />
-            <span>Welcomes You</span>
-          </h1>
+          <h1 className="welcome-title">Welcome to the Grand Summit</h1>
 
-          <div className="gold-divider" aria-hidden="true">
-            <span />
-            <span className="divider-diamond">✧</span>
-            <span />
+          <div className="ornamental-divider" aria-hidden="true">
+            <span className="divider-line" />
+            <span className="divider-diamond">❖</span>
+            <span className="divider-line" />
           </div>
 
           <p className="honour-text">
-            We extend our heartfelt welcome to our Honourable
-            Vice Chancellor, distinguished guests and dignitaries,
-            esteemed faculty members, researchers, healthcare
-            professionals, delegates and dear students.
+            Honourable Vice Chancellor, Distinguished Guests, Respected Faculty,
+            Researchers, Healthcare Dignitaries, Delegates, and Esteemed Students
           </p>
 
           <p className="welcome-message">
-            Your presence makes this gathering meaningful.
-            Together, let us explore ideas, share knowledge and
-            advance a healthier future through innovation.
+            It is our distinct privilege to convene this gathering at the
+            intersection of empathetic artificial intelligence, clinical
+            innovation, and mental well-being—envisioning compassionate
+            solutions that foster resilience and healthier lives.
           </p>
 
-          <div className="welcome-event">
-            <span className="event-kicker">
-              CELEBRATING KNOWLEDGE &amp; INNOVATION
-            </span>
+          {/* Compact Royal Event Showcase Box */}
+          <div className="event-showcase">
+            <div className="event-kicker-row">
+              <span className="kicker-line" />
+              <span className="event-label">INAUGURAL CEREMONY</span>
+              <span className="kicker-line" />
+            </div>
 
-            <h2>
-              AI &amp; Healthcare Summit
-              <span className="event-year">2026</span>
-            </h2>
+            <h2 className="event-title">AI &amp; Healthcare Summit 2026</h2>
 
             <p className="event-theme">
-              Advancing Solutions for Stress, Mental Health &amp;
-              Diabetes
+              Advancing Solutions for Stress, Mental Health &amp; Diabetes
             </p>
 
-            <p className="event-date">
-              <span className="date-line" />
-              04 NOVEMBER 2026
-              <span className="date-line" />
-            </p>
+            <div className="thematic-pills">
+              <span className="theme-pill">Stress Resilience</span>
+              <span className="theme-pill">Mental Well-Being</span>
+              <span className="theme-pill">Metabolic &amp; Diabetes Care</span>
+            </div>
+
+            <div className="event-date-bar">
+              <span className="date-badge">04 NOVEMBER 2026</span>
+              <span className="date-divider">•</span>
+              <span className="awareness-tag">
+                IN RECOGNITION OF WORLD STRESS AWARENESS DAY
+              </span>
+            </div>
           </div>
 
-          <button
-            className="enter-button"
-            type="button"
-            onClick={() => setCurtainsActive(true)}
-            disabled={curtainsActive}
-          >
-            <span>
-              {curtainsActive
-                ? "THE CEREMONY BEGINS"
-                : "REVEAL THE SUMMIT"}
-            </span>
-            <span className="enter-arrow" aria-hidden="true">
-              →
-            </span>
-          </button>
+          {/* Ceremonial Reveal Trigger */}
+          <div className="cta-footer">
+            <button
+              type="button"
+              className="reveal-button"
+              onClick={handleReveal}
+              disabled={curtainsVisible}
+            >
+              <span className="button-shimmer" aria-hidden="true" />
+              <span className="button-star">✦</span>
+              <span>
+                {curtainsVisible
+                  ? "Unveiling the Summit..."
+                  : "Begin the Ceremony"}
+              </span>
+              <span className="button-arrow">→</span>
+            </button>
 
-          <p className="keyboard-hint">
-            PRESS SPACE OR ENTER TO BEGIN
-          </p>
-        </div>
-
-        <div className="welcome-footer">
-          <span>1885 SMI UNIVERSITY</span>
-          <span className="footer-separator">✦</span>
-          <span>4 NOVEMBER 2026</span>
+            <p className="keyboard-hint">
+              Press <kbd>SPACE</kbd> or <kbd>ENTER</kbd> to unveil
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* FRESH FLOWER SHOWER FOR EACH STAGE */}
-      {(!isOpen || curtainsActive) && (
-        <div
-          key={isOpen ? "poster-petals" : "welcome-petals"}
-          className="petal-shower"
-          aria-hidden="true"
-        >
-          {petals.map((petal) => (
+      {/* ---------------- SLOW ROYAL VELVET CURTAINS ---------------- */}
+      <div className="curtain-layer" aria-hidden="true">
+        <div className="curtain curtain-left">
+          <div className="curtain-velvet-pleats" />
+          <div className="curtain-sheen" />
+          <div className="curtain-gold-edge" />
+        </div>
+
+        <div className="curtain curtain-right">
+          <div className="curtain-velvet-pleats" />
+          <div className="curtain-sheen" />
+          <div className="curtain-gold-edge" />
+        </div>
+
+        <div className="curtain-center-seam" />
+
+        {/* Central Royal Gold Seal */}
+        <div className="curtain-royal-seal">
+          <div className="seal-outer-ring">
+            <div className="seal-inner-disc">
+              <span className="seal-emblem">✦</span>
+              <span className="seal-year">1885</span>
+              <span className="seal-sub">SMIU</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------------- PETAL & GOLD STARDUST SHOWER ---------------- */}
+      {(curtainsVisible || isOpen) && (
+        <div className="petal-shower" aria-hidden="true">
+          {floatingItems.map((item) => (
             <span
-              key={petal.id}
-              className="flower-petal"
-              style={{
-                left: petal.left,
-                animationDelay: petal.delay,
-                animationDuration: petal.duration,
-                "--drift": petal.drift,
-                "--petal-size": petal.size,
-                "--rotation": petal.rotation,
-              } as React.CSSProperties}
+              key={item.id}
+              className={
+                item.type === "petal" ? "flower-petal" : "stardust-mote"
+              }
+              style={
+                {
+                  left: item.left,
+                  animationDelay: item.delay,
+                  animationDuration: item.duration,
+                  width: `${item.size}px`,
+                  height:
+                    item.type === "petal"
+                      ? `${item.size * 1.35}px`
+                      : `${item.size}px`,
+                  "--petal-drift": item.drift,
+                  "--petal-rot": item.rotation,
+                } as React.CSSProperties
+              }
             />
           ))}
         </div>
       )}
 
-      {/* CURTAINS: HIDDEN UNTIL THE POSTER REVEAL */}
-      <div className="curtain curtain-left" aria-hidden="true">
-        <div className="curtain-folds" />
-        <div className="curtain-edge" />
-      </div>
+      {/* ---------------- POSTER REVEAL STAGE (LOCKED TO 100SVH) ---------------- */}
+      <section
+        className="summit-reveal"
+        aria-label="AI and Healthcare Summit 2026 Official Poster"
+        aria-hidden={!isOpen}
+      >
+        <header className="poster-header">
+          <p className="poster-kicker">
+            1885 • SINDH MADRESSATUL ISLAM UNIVERSITY
+          </p>
+          <h2 className="poster-heading-title">The Summit Begins</h2>
+          <p className="poster-subtitle">
+            Innovation, Empathy &amp; Clinical Excellence for Mental Health
+          </p>
+        </header>
 
-      <div className="curtain curtain-right" aria-hidden="true">
-        <div className="curtain-folds" />
-        <div className="curtain-edge" />
-      </div>
+        <div className="poster-stage-area">
+          <div className="poster-frame">
+            <Image
+              src="/summitposter.jpeg"
+              alt="AI & Healthcare Summit 2026 official poster"
+              width={1200}
+              height={1697}
+              priority
+              className="summit-poster"
+              sizes="(max-width: 768px) 90vw, 55vh"
+            />
+          </div>
+        </div>
 
-      <div className="curtain-seam" aria-hidden="true" />
+        <footer className="poster-footer-bar">
+          <div className="poster-meta-text">
+            <span>AI &amp; Healthcare Summit 2026</span>
+            <span className="meta-sep">✦</span>
+            <span className="meta-gold">04 November 2026</span>
+            <span className="meta-sep">✦</span>
+            <span>World Stress Awareness Day</span>
+          </div>
+
+          <div className="stage-controls">
+            <button
+              type="button"
+              className="control-pill"
+              onClick={handleReset}
+              title="Replay the curtain reveal (or press Esc)"
+            >
+              ↺ Replay Ceremony
+            </button>
+            <button
+              type="button"
+              className="control-pill"
+              onClick={() => setSoundEnabled((prev) => !prev)}
+            >
+              {soundEnabled ? "♫ Applause: On" : "✕ Applause: Muted"}
+            </button>
+          </div>
+        </footer>
+      </section>
     </main>
   );
 }
